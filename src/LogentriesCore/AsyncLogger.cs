@@ -1,470 +1,220 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Configuration;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-
-#if !NET4_0
-using System.Text.RegularExpressions;
-#endif
-
-namespace LogentriesCore.Net
+﻿namespace LogentriesCore
 {
-    public class AsyncLogger
+    using System;
+    using System.Collections.Concurrent;
+    using System.Configuration;
+    using System.IO;
+    using System.Net.Security;
+    using System.Net.Sockets;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Text;
+    using System.Threading;
+    using Microsoft.WindowsAzure;
+
+    public class AsyncLogger : IDisposable
     {
-        #region Constants
+        // Logentries API server address. 
+        private const String LeApiUrl = "api.logentries.com";
 
-        // Current version number.
-        protected const String Version = "2.4.0";
+        // Port number for token logging on Logentries API server. 
+        private const int LeApiTokenPort = 10000;
 
-        // Size of the internal event queue. 
-        protected const int QueueSize = 32768;
-
-        // Minimal delay between attempts to reconnect in milliseconds. 
-        protected const int MinDelay = 100;
-
-        // Maximal delay between attempts to reconnect in milliseconds. 
-        protected const int MaxDelay = 10000;
-
-        // Appender signature - used for debugging messages. 
-        protected const String LeSignature = "LE: ";
-
-        // Legacy Logentries configuration names. 
-        protected const String LegacyConfigTokenName = "LOGENTRIES_TOKEN";
-        protected const String LegacyConfigAccountKeyName = "LOGENTRIES_ACCOUNT_KEY";
-        protected const String LegacyConfigLocationName = "LOGENTRIES_LOCATION";
+        // Port number for TLS encrypted token logging on Logentries API server 
+        private const int LeApiTokenTlsPort = 20000;
 
         // New Logentries configuration names.
-        protected const String ConfigTokenName = "Logentries.Token";
-        protected const String ConfigAccountKeyName = "Logentries.AccountKey";
-        protected const String ConfigLocationName = "Logentries.Location";
-
-        // Error message displayed when invalid token is detected. 
-        protected const String InvalidTokenMessage = "\n\nIt appears your LOGENTRIES_TOKEN value is invalid or missing.\n\n";
-
-        // Error message displayed when invalid account_key or location parameters are detected. 
-        protected const String InvalidHttpPutCredentialsMessage = "\n\nIt appears your LOGENTRIES_ACCOUNT_KEY or LOGENTRIES_LOCATION values are invalid or missing.\n\n";
-
-        // Error message deisplayed when queue overflow occurs. 
-        protected const String QueueOverflowMessage = "\n\nLogentries buffer queue overflow. Message dropped.\n\n";
+        private const String ConfigTokenName = "Logentries.Token";
 
         // Newline char to trim from message for formatting. 
-        protected static char[] TrimChars = { '\r', '\n' };
-
-        /** Non-Unix and Unix Newline */
-        protected static string[] posix_newline = { "\r\n", "\n" };
+        private static readonly char[] TrimChars = { '\r', '\n' };
 
         /** Unicode line separator character */
-        protected static string line_separator = "\u2028";
-
-#if !NET4_0
-        /** Regex used to validate GUID in .NET3.5 */
-        private static Regex isGuid = new Regex(@"^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$", RegexOptions.Compiled);
-#endif
-
-        #endregion
-
-        #region Singletons
-
-        // UTF-8 output character set. 
-        protected static readonly UTF8Encoding UTF8 = new UTF8Encoding();
-
-        // ASCII character set used by HTTP. 
-        protected static readonly ASCIIEncoding ASCII = new ASCIIEncoding();
-
-        //static list of all the queues the le appender might be managing.
-        private static ConcurrentBag<BlockingCollection<string>> _allQueues = new ConcurrentBag<BlockingCollection<string>>();
-
-        /// <summary>
-        /// Determines if the queue is empty after waiting the specified waitTime.
-        /// Returns true or false if the underlying queues are empty.
-        /// </summary>
-        /// <param name="waitTime">The length of time the method should block before giving up waiting for it to empty.</param>
-        /// <returns>True if the queue is empty, false if there are still items waiting to be written.</returns>
-        public static bool AreAllQueuesEmpty(TimeSpan waitTime)
-        {
-            var start = DateTime.UtcNow;
-            var then = DateTime.UtcNow;
-
-            while (start.Add(waitTime) > then)
-            {
-                if (_allQueues.All(x => x.Count == 0))
-                    return true;
-
-                Thread.Sleep(100);
-                then = DateTime.UtcNow;
-            }
-
-            return _allQueues.All(x => x.Count == 0);
-        }
-        #endregion
+        private const string LineSeparator = "\u2028";
 
         public AsyncLogger()
         {
-            Queue = new BlockingCollection<string>(QueueSize);
-            _allQueues.Add(Queue);
+            _queue = new ConcurrentQueue<string>();
 
-            WorkerThread = new Thread(new ThreadStart(Run));
-            WorkerThread.Name = "Logentries Log4net Appender";
-            WorkerThread.IsBackground = true;
+            WorkerThread = new Thread(Run)
+            {
+                Name = "Logentries Log4net Appender", 
+                IsBackground = true
+            };
+            WorkerThread.Start();
         }
 
-        #region Configuration properties
+        private Thread WorkerThread { get; set; }
 
-        private String m_Token = "";
-        private String m_AccountKey = "";
-        private String m_Location = "";
-        private bool m_ImmediateFlush = false;
-        private bool m_Debug = false;
-        private bool m_UseHttpPut = false;
-        private bool m_UseSsl = false;
+        public string Token { get; set; }
 
-        public void setToken(String token)
-        {
-            m_Token = token;
-        }
+        public bool UseSsl { get; set; }
 
-        public String getToken()
-        {
-            return m_Token;
-        }
+        public bool ImmediateFlush { get; set; }
 
-        public void setAccountKey(String accountKey)
-        {
-            m_AccountKey = accountKey;
-        }
+        private readonly ConcurrentQueue<string> _queue;
+        
+        private TcpClient _leClient;
 
-        public string getAccountKey()
-        {
-            return m_AccountKey;
-        }
-
-        public void setLocation(String location)
-        {
-            m_Location = location;
-        }
-
-        public String getLocation()
-        {
-            return m_Location;
-        }
-
-        public void setImmediateFlush(bool immediateFlush)
-        {
-            m_ImmediateFlush = immediateFlush;
-        }
-
-        public bool getImmediateFlush()
-        {
-            return m_ImmediateFlush;
-        }
-
-        public void setDebug(bool debug)
-        {
-            m_Debug = debug;
-        }
-
-        public bool getDebug()
-        {
-            return m_Debug;
-        }
-
-        public void setUseHttpPut(bool useHttpPut)
-        {
-            m_UseHttpPut = useHttpPut;
-        }
-
-        public bool getUseHttpPut()
-        {
-            return m_UseHttpPut;
-        }
-
-        public void setUseSsl(bool useSsl)
-        {
-            m_UseSsl = useSsl;
-        }
-
-        public bool getUseSsl()
-        {
-            return m_UseSsl;
-        }
-
-        #endregion
-
-        protected readonly BlockingCollection<string> Queue;
-        protected readonly Thread WorkerThread;
-        protected readonly Random Random = new Random();
-
-        private LeClient LeClient = null;
-        protected bool IsRunning = false;
-
-        #region Protected methods
-
-        protected virtual void Run()
+        protected Stream Stream;
+        
+        private void Run()
         {
             try
             {
-                // Open connection.
-                ReopenConnection();
-
-                // Send data in queue.
                 while (true)
                 {
                     // Take data from queue.
-                    var line = Queue.Take();
+                    string line;
 
-                    // Replace newline chars with line separator to format multi-line events nicely.
-                    foreach (String newline in posix_newline)
-                    {
-                        line = line.Replace(newline, line_separator);
-                    }
+                    if (_queue.TryDequeue(out line)) { 
+                        // Replace newline chars with line separator to format multi-line events nicely.
+                        var finalLine = Token + line.Replace(Environment.NewLine, LineSeparator)
+                                   .Replace("\n", LineSeparator)
+                                   .Replace("\r", LineSeparator) + "\n";
+                        
+                        var data = Encoding.UTF8.GetBytes(finalLine);
 
-                    string finalLine = (!m_UseHttpPut ? this.m_Token + line : line) + '\n';
-
-                    byte[] data = UTF8.GetBytes(finalLine);
-
-                    // Send data, reconnect if needed.
-                    while (true)
-                    {
-                        try
+                        // Send data, reconnect if needed.
+                        while (true)
                         {
-                            this.LeClient.Write(data, 0, data.Length);
+                            try
+                            {
+                                EnsureOpenConnection();
+                                Stream.Write(data, 0, data.Length);
 
-                            if (m_ImmediateFlush)
-                                this.LeClient.Flush();
+                                if (ImmediateFlush)
+                                    Stream.Flush();
+                            }
+                            catch (IOException)
+                            {
+                                Thread.Sleep(1);
+                                continue;
+                            }
+
+                            break;
                         }
-                        catch (IOException)
-                        {
-                            // Reopen the lost connection.
-                            ReopenConnection();
-                            continue;
-                        }
-
-                        break;
                     }
+                    Thread.Sleep(1);
                 }
             }
-            catch (ThreadInterruptedException ex)
+            catch (ThreadInterruptedException)
             {
-                WriteDebugMessages("Logentries asynchronous socket client was interrupted.", ex);
             }
         }
 
-        protected virtual void OpenConnection()
+        private string RetrieveSetting(String name)
         {
-            try
-            {
-                if (LeClient == null)
-                    LeClient = new LeClient(m_UseHttpPut, m_UseSsl);
+            var cloudconfig = CloudConfigurationManager.GetSetting(name);
 
-                LeClient.Connect();
-
-                if (m_UseHttpPut)
-                {
-                    var header = String.Format("PUT /{0}/hosts/{1}/?realtime=1 HTTP/1.1\r\n\r\n", m_AccountKey, m_Location);
-                    LeClient.Write(ASCII.GetBytes(header), 0, header.Length);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new IOException("An error occurred while opening the connection.", ex);
-            }
+            return String.IsNullOrWhiteSpace(cloudconfig) ? ConfigurationManager.AppSettings[name] : cloudconfig;
         }
 
-        protected virtual void ReopenConnection()
+        private string GetCredentials()
         {
-            CloseConnection();
+            var configToken = RetrieveSetting(ConfigTokenName);
 
-            var rootDelay = MinDelay;
-            while (true)
+            if (!String.IsNullOrEmpty(configToken) && GetIsValidGuid(configToken))
             {
-                try
-                {
-                    OpenConnection();
-
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    if (m_Debug)
-                    {
-                        WriteDebugMessages("Unable to connect to Logentries API.", ex);
-                    }
-                }
-
-                rootDelay *= 2;
-                if (rootDelay > MaxDelay)
-                    rootDelay = MaxDelay;
-
-                var waitFor = rootDelay + Random.Next(rootDelay);
-
-                try
-                {
-                    Thread.Sleep(waitFor);
-                }
-                catch
-                {
-                    throw new ThreadInterruptedException();
-                }
-            }
-        }
-
-        protected virtual void CloseConnection()
-        {
-            if (LeClient != null)
-                LeClient.Close();
-        }
-
-        private string retrieveSetting(String name)
-        {
-#if NET4_0
-            return CloudConfigurationManager.GetSetting(name);
-#else
-            return ConfigurationManager.AppSettings[name];
-#endif
-        }
-
-        /*
-         * Use CloudConfigurationManager with .NET4.0 and fallback to System.Configuration for previous frameworks.
-         */
-        protected virtual bool LoadCredentials()
-        {
-            if (!m_UseHttpPut)
-            {
-                if (GetIsValidGuid(m_Token))
-                    return true;
-
-                var configToken = retrieveSetting(LegacyConfigTokenName) ?? retrieveSetting(ConfigTokenName);
-
-                if (!String.IsNullOrEmpty(configToken) && GetIsValidGuid(configToken))
-                {
-                    m_Token = configToken;
-                    return true;
-                }
-
-                WriteDebugMessages(InvalidTokenMessage);
-                return false;
+                return configToken;
             }
 
-            if (m_AccountKey != "" && GetIsValidGuid(m_AccountKey) && m_Location != "")
-                return true;
-#if NET4_0
-            var configAccountKey = CloudConfigurationManager.GetSetting(LegacyConfigAccountKeyName) ?? CloudConfigurationManager.GetSetting(ConfigAccountKeyName);
-#else
-            var configAccountKey = ConfigurationManager.AppSettings[ConfigAccountKeyName];
-#endif
-            if (!String.IsNullOrEmpty(configAccountKey) && GetIsValidGuid(configAccountKey))
-            {
-                m_AccountKey = configAccountKey;
-#if NET4_0
-                var configLocation = CloudConfigurationManager.GetSetting(LegacyConfigLocationName) ?? CloudConfigurationManager.GetSetting(ConfigLocationName);
-#else
-                var configLocation = ConfigurationManager.AppSettings[ConfigLocationName];
-#endif
-                if (!String.IsNullOrEmpty(configLocation))
-                {
-                    m_Location = configLocation;
-                    return true;
-                }
-            }
-
-            WriteDebugMessages(InvalidHttpPutCredentialsMessage);
-            return false;
+            throw new ConfigurationErrorsException("No LogEntries Token configured make sure your have Logentries.Token in your app.config or cloudconfig.");
         }
 
-#if !NET4_0
-        static bool IsGuid(string candidate, out Guid output)
-        {
-            bool isValid = false;
-            output = Guid.Empty;
 
-            if (isGuid.IsMatch(candidate))
-            {
-                output = new Guid(candidate);
-                isValid = true;
-            }
-            return isValid;
-        }
-#endif
-
-        protected virtual bool GetIsValidGuid(string guidString)
+        private bool GetIsValidGuid(string guidString)
         {
             if (String.IsNullOrEmpty(guidString))
                 return false;
 
-            System.Guid newGuid = System.Guid.NewGuid();
-#if NET4_0
-            return System.Guid.TryParse(uuid_input, out newGuid);
-#else
-            return IsGuid(guidString, out newGuid);
-#endif
+            Guid newGuid;
+            return Guid.TryParse(guidString, out newGuid);
         }
 
-        protected virtual void WriteDebugMessages(string message, Exception ex)
+        public void AddLine(string line)
         {
-            if (!m_Debug)
-                return;
+            EnsureToken();
+            _queue.Enqueue(line.TrimEnd(TrimChars));
+        }
 
-            message = LeSignature + message;
-            string[] messages = { message, ex.ToString() };
-            foreach (var msg in messages)
+        private void EnsureToken()
+        {
+            if (string.IsNullOrWhiteSpace(Token))
             {
-                // Use below line instead when compiling with log4net1.2.10.
-                //LogLog.Debug(msg);
-
-                //LogLog.Debug(typeof(LogentriesAppender), msg);
+                Token = GetCredentials();
             }
         }
 
-        protected virtual void WriteDebugMessages(string message)
+        protected virtual void EnsureOpenConnection()
         {
-            if (!m_Debug)
-                return;
-
-            message = LeSignature + message;
-
-            // Use below line instead when compiling with log4net1.2.10.
-            //LogLog.Debug(message);
-
-            //LogLog.Debug(typeof(LogentriesAppender), message);
-        }
-
-        #endregion
-
-        #region publicMethods
-
-        public virtual void AddLine(string line)
-        {
-            if (!IsRunning)
+            if (_leClient == null || !_leClient.Connected)
             {
-                if (LoadCredentials())
+                _leClient = new TcpClient(LeApiUrl, (UseSsl ? LeApiTokenTlsPort : LeApiTokenPort))
                 {
-                    WriteDebugMessages("Starting Logentries asynchronous socket client.");
-                    WorkerThread.Start();
-                    IsRunning = true;
+                    NoDelay = true
+                };
+                
+                if (UseSsl)
+                {
+                    Stream = new SslStream(_leClient.GetStream(), false, (sender, cert, chain, errors) => cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
+                    ((SslStream)Stream).AuthenticateAsClient(LeApiUrl);
                 }
-            }
 
-            WriteDebugMessages("Queueing: " + line);
-
-            String trimmedEvent = line.TrimEnd(TrimChars);
-
-            // Try to append data to queue.
-            if (!Queue.TryAdd(trimmedEvent))
-            {
-                Queue.Take();
-                if (!Queue.TryAdd(trimmedEvent))
-                    WriteDebugMessages(QueueOverflowMessage);
+                Stream = _leClient.GetStream();
             }
         }
+      
+        // Logentries API server certificate. 
+        private static readonly X509Certificate2 LeApiServerCertificate =
+            new X509Certificate2(Encoding.UTF8.GetBytes(
+                @"-----BEGIN CERTIFICATE-----
+                MIIFSjCCBDKgAwIBAgIDBQMSMA0GCSqGSIb3DQEBBQUAMGExCzAJBgNVBAYTAlVT
+                MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMR0wGwYDVQQLExREb21haW4gVmFsaWRh
+                dGVkIFNTTDEbMBkGA1UEAxMSR2VvVHJ1c3QgRFYgU1NMIENBMB4XDTEyMDkxMDE5
+                NTI1N1oXDTE2MDkxMTIxMjgyOFowgcExKTAnBgNVBAUTIEpxd2ViV3RxdzZNblVM
+                ek1pSzNiL21hdktiWjd4bEdjMRMwEQYDVQQLEwpHVDAzOTM4NjcwMTEwLwYDVQQL
+                EyhTZWUgd3d3Lmdlb3RydXN0LmNvbS9yZXNvdXJjZXMvY3BzIChjKTEyMS8wLQYD
+                VQQLEyZEb21haW4gQ29udHJvbCBWYWxpZGF0ZWQgLSBRdWlja1NTTChSKTEbMBkG
+                A1UEAxMSYXBpLmxvZ2VudHJpZXMuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+                MIIBCgKCAQEAxcmFqgE2p6+N9lM2GJhe8bNUO0qmcw8oHUVrsneeVA66hj+qKPoJ
+                AhGKxC0K9JFMyIzgPu6FvuVLahFZwv2wkbjXKZLIOAC4o6tuVb4oOOUBrmpvzGtL
+                kKVN+sip1U7tlInGjtCfTMWNiwC4G9+GvJ7xORgDpaAZJUmK+4pAfG8j6raWgPGl
+                JXo2hRtOUwmBBkCPqCZQ1mRETDT6tBuSAoLE1UMlxWvMtXCUzeV78H+2YrIDxn/W
+                xd+eEvGTSXRb/Q2YQBMqv8QpAlarcda3WMWj8pkS38awyBM47GddwVYBn5ZLEu/P
+                DiRQGSmLQyFuk5GUdApSyFETPL6p9MfV4wIDAQABo4IBqDCCAaQwHwYDVR0jBBgw
+                FoAUjPTZkwpHvACgSs5LdW6gtrCyfvwwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQW
+                MBQGCCsGAQUFBwMBBggrBgEFBQcDAjAdBgNVHREEFjAUghJhcGkubG9nZW50cmll
+                cy5jb20wQQYDVR0fBDowODA2oDSgMoYwaHR0cDovL2d0c3NsZHYtY3JsLmdlb3Ry
+                dXN0LmNvbS9jcmxzL2d0c3NsZHYuY3JsMB0GA1UdDgQWBBRaMeKDGSFaz8Kvj+To
+                j7eMOtT/zTAMBgNVHRMBAf8EAjAAMHUGCCsGAQUFBwEBBGkwZzAsBggrBgEFBQcw
+                AYYgaHR0cDovL2d0c3NsZHYtb2NzcC5nZW90cnVzdC5jb20wNwYIKwYBBQUHMAKG
+                K2h0dHA6Ly9ndHNzbGR2LWFpYS5nZW90cnVzdC5jb20vZ3Rzc2xkdi5jcnQwTAYD
+                VR0gBEUwQzBBBgpghkgBhvhFAQc2MDMwMQYIKwYBBQUHAgEWJWh0dHA6Ly93d3cu
+                Z2VvdHJ1c3QuY29tL3Jlc291cmNlcy9jcHMwDQYJKoZIhvcNAQEFBQADggEBAAo0
+                rOkIeIDrhDYN8o95+6Y0QhVCbcP2GcoeTWu+ejC6I9gVzPFcwdY6Dj+T8q9I1WeS
+                VeVMNtwJt26XXGAk1UY9QOklTH3koA99oNY3ARcpqG/QwYcwaLbFrB1/JkCGcK1+
+                Ag3GE3dIzAGfRXq8fC9SrKia+PCdDgNIAFqe+kpa685voTTJ9xXvNh7oDoVM2aip
+                v1xy+6OfZyGudXhXag82LOfiUgU7hp+RfyUG2KXhIRzhMtDOHpyBjGnVLB0bGYcC
+                566Nbe7Alh38TT7upl/O5lA29EoSkngtUWhUnzyqYmEMpay8yZIV4R9AuUk2Y4HB
+                kAuBvDPPm+C0/M4RLYs=
+                -----END CERTIFICATE-----"));
 
-        public void interruptWorker()
+
+        public void Dispose()
         {
-            WorkerThread.Interrupt();
-        }
+            Dispose(true);
 
-        #endregion
+            // Use SupressFinalize in case a subclass 
+            // of this type implements a finalizer.
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Stream.Dispose();
+                _leClient.Close();
+            }
+        }
     }
 }

@@ -7,3 +7,16 @@ C:\Users\Mark\Documents\Visual Studio 2010\Projects\Logentries\LogentriesLog4net
 C:\Users\Mark\Documents\Visual Studio 2010\Projects\Logentries\LogentriesLog4net\obj\Release\ResolveAssemblyReference.cache
 C:\Users\Mark\Documents\Visual Studio 2010\Projects\Logentries\LogentriesLog4net\obj\Release\LogentriesLog4net.dll
 C:\Users\Mark\Documents\Visual Studio 2010\Projects\Logentries\LogentriesLog4net\obj\Release\LogentriesLog4net.pdb
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\LogentriesLog4net.dll
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\LogentriesLog4net.pdb
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\log4net.dll
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\LogentriesCore.dll
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\Microsoft.WindowsAzure.Configuration.dll
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\LogentriesCore.pdb
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\log4net.xml
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\Microsoft.WindowsAzure.Configuration.xml
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\obj\Release\LogentriesLog4net.csprojResolveAssemblyReference.cache
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\obj\Release\LogentriesLog4net.dll
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\obj\Release\LogentriesLog4net.pdb
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\LogentriesLog4net.dll.CodeAnalysisLog.xml
+C:\Users\alber_000\Documents\GitHub\le_dotnet\src\LogentriesLog4net\bin\Release\LogentriesLog4net.dll.lastcodeanalysissucceeded

@@ -52,12 +52,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LogentriesCore35\LogentriesCore35.csproj">
-      <Project>{39D256DC-1245-44A5-935D-E4C01E079288}</Project>
-      <Name>LogentriesCore35</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Release (
