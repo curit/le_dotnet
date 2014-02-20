@@ -1,3 +1,5 @@
+# WARNING USE AT OWN RISK GO ON OVER TO [logentries on github](http://github.com/logentries/le_dotnet) for the official repository!
+
 # Logging To Logentries.
 
 Logentries currently has plugins for [NLog](#nlog) and [Log4net](#log4net).
