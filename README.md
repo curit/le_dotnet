@@ -1,3 +1,5 @@
+# WARNING USE AT OWN RISK GO ON OVER TO [logentries on github](http://github.com/logentries/le_dotnet) for the official repository!
+
 # Logging To Logentries.
 
 Logentries currently has plugins for [NLog](#nlog) and [Log4net](#log4net).
@@ -26,9 +28,7 @@ Please note that Logentries reads no particular meaning into the names of your h
 
 log4net
 -------
-The easiest way to add the Log4net and the Logentries Plugin library to your application is to install the `logentries.log4net` [Nuget package](http://www.nuget.org/packages/logentries.log4net "Nuget package"). This package will install the Logentries Plugin library and will also automatically install the `log4net` package as a dependency.
-
-If you would rather install the Logentries appender manually, you can download the complete code in this GitHub repository, compile the LogentriesLog4net Visual Studio project within it into a DLL file, and then reference this file in your application. If you choose this option you must install Log4net yourself.
+The easiest way to add the Log4net and the Logentries Plugin library to your application is to install the `curit.logentries.log4net` [Nuget package](http://www.nuget.org/packages/curit.logentries.log4net "Nuget package"). This package will install the Logentries Plugin library and will also automatically install the `log4net` and Azure cloud configuration packages as a dependencies.
 
 ## Configuring Log4net and the Logentries Appender
 
@@ -53,18 +53,11 @@ Logging settings determine how the appender operates, and are specified as child
 
 - **Level**: The lowest Log4net logging level that should be included. All log messages with a logging level below this level will be filtered out and not sent to Logentries.
 - **ImmediateFlush**: Set to `true` to always flush the TCP stream after every written entry.
-- **Debug**: Set to `true` to send internal debug messages to the Log4net internal logger.
-- **UseHttpPut**: Set to `true` to use HTTP PUT to send data to Logentries (see below for more information).
-- **UseSsl**: Set to `true` to use SSL to send data to Logentries (see below for more information).
 - **Layout**: The layout used to format log messages before they are sent to Logentries. See the [Configuration section of the Log4net manual](http://logging.apache.org/log4net/release/manual/configuration.html) for more information on configuring layouts.
 
 Here is an example of an appender configuration that works well for Logentries:
 
 	<appender name="LeAppender" type="log4net.Appender.LogentriesAppender, LogentriesLog4net">
-		<immediateFlush value="true" />
-		<debug value="true" />
-		<useHttpPut value="false" />
-		<useSsl value="false" />
 		<layout type="log4net.Layout.PatternLayout">
 			<!-- The below pattern has been carefully formatted and optimized to work well with the Logentries.com entry parser. For reference see https://logentries.com/doc/search/. -->
 			<param name="ConversionPattern" value="%d %logger %level% %m%n" />
@@ -76,7 +69,6 @@ Here is an example of an appender configuration that works well for Logentries:
 Logentries credentials determine to which host and log your log messages are sent. The following settings constitute the Logentries credentials:
 
 - **Token**: The unique token GUID of the log to send messages to. This applies when using the newer token-based logging.
-- **AccountKey** and **Location**: The account key and location to send messages to. This applies when using the older HTTP PUT logging (see below for more information).
 
 Unlike the logging settings (which are typically configured once for a given application) the Logentries credentials typically vary based on the environment or instance of your application. For example, your application might run in both a testing and a production environment, and you will most likely wish to have separate logging destinations for those two environments.
 
@@ -131,12 +123,6 @@ Here is an example of how additional web-specific contextual log information can
 		</layout>
 	</appender>
 
-### Token-Based Logging vs. HTTP PUT Logging
-
-Our recommended method of sending messages to Logentries is via Token TCP over port 10000. To use this method, select `Token TCP` as the source type when creating a new log in the Logentries UI, and then paste the token that is printed beside the log in the value for the `Logentries.Token` credential setting.
-
-Older versions of the Logentries appender used HTTP PUT over port 80 to send messages to Logentries, and this is still supported. To use this, select `API/HTTP PUT` as the source type when creating a new log in the Logentries UI, and set the `useHttpPut` logging setting to true. Then obtain your account key by selecting `Account` on the left sidebar when logged in and clicking `Account Key` and set the `Logentries.AccountKey` credential setting to this value. Finally set the `Logentries.Location` credential setting to the name of your host followed by the name of your log in the following format: "hostName/logName".
-
 ### Sending Log Data over SSL/TLS
 
 The Logentries appender supports sending log data over SSL/TLS with both of the above logging methods by setting the `useSsl` logging setting to `true` in the appender definition. This is more secure but may have a performance impact.
@@ -151,7 +137,7 @@ In each class you wish to log from, add the following using directive at the top
 
 Then create a logger object at the class level:
 
-    private static readonly ILog m_Logger = LogManager.GetLogger(typeof({YOURCLASSNAMEHERE}).FullName);
+    private static readonly ILog Logger = LogManager.GetLogger(typeof({YOURCLASSNAMEHERE}).FullName);
 
 Be sure to enter the name of current class instead of `{YOURCLASSNAMEHERE}` above. This creates a logger with the same name as the current class, which organizes the Log4net configuration hierarchy according to your code namespace hierarchy. This provides both clarity when reading the logs, and convenience when configuring different log levels for different areas of your code.
 
@@ -159,10 +145,10 @@ Now within your code in that class, you can log using Log4net as normal and it w
 
 Examples:
 
-    m_Logger.Debug("Debugging message");
-    m_Logger.Info("Informational message");
-    m_Logger.Warn("Warning message");
-    m_Logger.Error("Error message", ex);
+    Logger.Debug("Debugging message");
+    Logger.Info("Informational message");
+    Logger.Warn("Warning message");
+    Logger.Error("Error message", ex);
 
 Complete code example:
 
@@ -170,49 +156,17 @@ Complete code example:
 
     public class HomeController : Controller
     {
-        private static readonly ILog m_Logger = log4net.LogManager.GetLogger(typeof(HomeController).FullName);
+        private static readonly ILog Logger = log4net.LogManager.GetLogger(typeof(HomeController).FullName);
         
         public ActionResult Index()
         {
-            m_Logger.Debug("Home page viewed.");       
+            Logger.Debug("Home page viewed.");       
             ViewBag.Message = "Welcome to ASP.NET MVC!";       
-            m_Logger.Warn("This is a warning message!");       
+            Logger.Warn("This is a warning message!");       
             return View();
         }
     }
 
-## Troubleshooting
-
-By default the Logentries appender logs its own debug messages to log4net's internal logger. Checking these debug messages can help figuring out why logging to Logentries does not work as expected.
-
-To disable log4net internal debug messages, set the `log4net.Internal.Debug` setting in the `<appSettings>` section of your `App.config` or `Web.config` file to `false`:
-
-	<appSettings>
-		<add key="log4net.Internal.Debug" value="false" />
-	</appSettings>
-
-If you would like to keep log4net internal debugging enabled in general, but disable Logentries debug messages specifically, then change the `debug` parameter inside the `<appender>` element to `false` instead:
-
-	<appender name="LeAppender" type="log4net.Appender.LogentriesAppender, LeLog4net">
-		<debug value="false" />
-		...
-	</appender>
-
-Ensure that you followed the section of this readme regarding your AssemblyInfo.cs file.
-
-## Shutting Down the Logger
-
-The Logentries appender keeps an internal queue of log messages and communicates with the Logentries system using a background thread which continuously sends messages from this queue. Because of this, when an application is shutting down, it is possible that some log messages might still remain in the queue and will not have time to be sent to Logentries before the application domain is shut down.
-
-To work around this potential problem, consider adding the following code to your application, which will block for a moment to allow the Logentries appender to finish logging all messages in the queue. The AreAllQueuesEmpty() blocks for a specified time and then returns true or false depending on whether the queues had time to become empty before the method returns.
-
-	public void Application_End()
-	{
-		// This will give LE background thread some time to finish sending messages to Logentries.
-		var numWaits = 3;
-		while (!LogentriesCore.Net.AsyncLogger.AreAllQueuesEmpty(TimeSpan.FromSeconds(5)) && numWaits > 0)
-			numWaits--;
-	}
 
 NLog
 -----
@@ -241,8 +195,6 @@ Logging settings determine how the target operates, and are specified as child e
 
 - **Level**: The lowest NLog logging level that should be included. All log messages with a logging level below this level will be filtered out and not sent to Logentries.
 - **ImmediateFlush**: Set to `true` to always flush the TCP stream after every written entry.
-- **Debug**: Set to `true` to send internal debug messages to the Log4net internal logger.
-- **UseHttpPut**: Set to `true` to use HTTP PUT to send data to Logentries (see below for more information).
 - **UseSsl**: Set to `true` to use SSL to send data to Logentries (see below for more information).
 - **Layout**: The layout used to format log messages before they are sent to Logentries. See the [Configuration section of the Log4net manual](http://logging.apache.org/log4net/release/manual/configuration.html) for more information on configuring layouts.
 
@@ -262,7 +214,6 @@ Here is an example of an appender configuration that works well for Logentries:
 Logentries credentials determine to which host and log your log messages are sent. The following settings constitute the Logentries credentials:
 
 - **Token**: The unique token GUID of the log to send messages to. This applies when using the newer token-based logging.
-- **AccountKey** and **Location**: The account key and location to send messages to. This applies when using the older HTTP PUT logging (see below for more information).
 
 Unlike the logging settings (which are typically configured once for a given application) the Logentries credentials typically vary based on the environment or instance of your application. For example, your application might run in both a testing and a production environment, and you will most likely wish to have separate logging destinations for those two environments.
 
@@ -309,12 +260,6 @@ Here is an example of how additional web-specific contextual log information can
 		layout="${date:format=ddd MMM dd} ${time:format=HH:mm:ss} ${date:format=zzz yyyy} ${logger} ${LEVEL} ${message}${newline}SessionId='${aspnet-sessionid}'; Username='${aspnet-user-identity}'; ${newline}" />
 
 
-### Token-Based Logging vs. HTTP PUT Logging
-
-Our recommended method of sending messages to Logentries is via Token TCP over port 10000. To use this method, select `Token TCP` as the source type when creating a new log in the Logentries UI, and then paste the token that is printed beside the log in the value for the `Logentries.Token` credential setting.
-
-Older versions of the Logentries target used HTTP PUT over port 80 to send messages to Logentries, and this is still supported. To use this, select `API/HTTP PUT` as the source type when creating a new log in the Logentries UI, and set the `useHttpPut` logging setting to true. Then obtain your account key by selecting `Account` on the left sidebar when logged in and clicking `Account Key` and set the `Logentries.AccountKey` credential setting to this value. Finally set the `Logentries.Location` credential setting to the name of your host followed by the name of your log in the following format: "hostName/logName".
-
 ### Sending Log Data over SSL/TLS
 
 The Logentries appender supports sending log data over SSL/TLS with both of the above logging methods by setting the `useSsl` logging setting to `true` in the appender definition. This is more secure but may have a performance impact.
@@ -329,7 +274,7 @@ In each class you wish to log from, add the following using directive at the top
 
 Then create a logger object at the class level:
 
-    private static readonly Logger m_logger = LogManager.getCurrentClassLogger();
+    private static readonly Logger Logger = LogManager.getCurrentClassLogger();
 
 This creates a logger with the same name as the current class, which organizes the NLog configuration hierarchy according to your code namespace hierarchy. This provides both clarity when reading the logs, and convenience when configuring different log levels for different areas of your code.
 
@@ -337,10 +282,10 @@ Now within your code in that class, you can log using NLog as normal and it will
 
 Examples:
 
-    m_Logger.Debug("Debugging message");
-    m_Logger.Info("Informational message");
-    m_Logger.Warn("Warning message");
-    m_Logger.Error("Error message", ex);
+    Logger.Debug("Debugging message");
+    Logger.Info("Informational message");
+    Logger.Warn("Warning message");
+    Logger.Error("Error message", ex);
 
 Complete code example:
 
@@ -348,31 +293,13 @@ Complete code example:
 
     public class HomeController : Controller
     {
-        private static readonly Logger m_Logger = LogManager.getCurrentClassLogger();
+        private static readonly Logger Logger = LogManager.getCurrentClassLogger();
         
         public ActionResult Index()
         {
-            m_Logger.Debug("Home page viewed.");       
+            Logger.Debug("Home page viewed.");       
             ViewBag.Message = "Welcome to ASP.NET MVC!";       
-            m_Logger.Warn("This is a warning message!");       
+            Logger.Warn("This is a warning message!");       
             return View();
         }
     }
-
-## Troubleshooting
-
-By default the Logentries target logs its own debug messages to NLog's internal logger. Checking these debug messages can help figuring out why logging to Logentries does not work as expected.
-
-## Shutting Down the Logger
-
-The Logentries target keeps an internal queue of log messages and communicates with the Logentries system using a background thread which continuously sends messages from this queue. Because of this, when an application is shutting down, it is possible that some log messages might still remain in the queue and will not have time to be sent to Logentries before the application domain is shut down.
-
-To work around this potential problem, consider adding the following code to your application, which will block for a moment to allow the Logentries appender to finish logging all messages in the queue. The AreAllQueuesEmpty() blocks for a specified time and then returns true or false depending on whether the queues had time to become empty before the method returns.
-
-	public void Application_End()
-	{
-		// This will give LE background thread some time to finish sending messages to Logentries.
-		var numWaits = 3;
-		while (!LogentriesCore.Net.AsyncLogger.AreAllQueuesEmpty(TimeSpan.FromSeconds(5)) && numWaits > 0)
-			numWaits--;
-	}
