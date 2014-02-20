@@ -13,8 +13,6 @@
             _logentriesAsync = new AsyncLogger();
         }
 
-        #region attributeMethods
-
         public string Token
         {
             get { return _logentriesAsync.Token; }
@@ -33,8 +31,6 @@
             set { _logentriesAsync.UseSsl = value; }
         }
     
-        #endregion
-
         protected override void Append(LoggingEvent loggingEvent)
         {
             _logentriesAsync.AddLine(RenderLoggingEvent(loggingEvent));
