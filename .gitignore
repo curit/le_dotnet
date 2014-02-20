@@ -24,3 +24,4 @@ packages/
 src/_NCrunch_Nancy/
 Thumbs.db
 .idea
+/src/LogentriesLog4net/*.nupkg
