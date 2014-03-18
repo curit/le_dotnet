@@ -208,12 +208,15 @@
             // of this type implements a finalizer.
             GC.SuppressFinalize(this);
         }
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                Stream.Dispose();
-                _leClient.Close();
+                if (_leClient != null)
+                {
+                    _leClient.Close();
+                }
             }
         }
     }
