@@ -56,7 +56,7 @@
         private TcpClient _leClient;
 
         protected Stream Stream;
-        
+
         private void Run()
         {
             try
@@ -80,6 +80,13 @@
                             try
                             {
                                 EnsureOpenConnection();
+                                
+                                if (!Stream.CanWrite)
+                                {
+                                    _leClient.Close();
+                                    continue;
+                                }
+
                                 Stream.Write(data, 0, data.Length);
 
                                 if (ImmediateFlush)
@@ -87,10 +94,23 @@
                             }
                             catch (IOException)
                             {
-                                Thread.Sleep(1);
                                 continue;
                             }
-
+                            catch (SocketException)
+                            {
+                                //can't open connection wait a little longer.
+                                Thread.Sleep(100);
+                                continue;
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                continue;
+                            }
+                            finally
+                            {
+                                //couldn't write/read to the network
+                                Thread.Sleep(1);
+                            }
                             break;
                         }
                     }
@@ -102,14 +122,14 @@
             }
         }
 
-        private string RetrieveSetting(String name)
+        private static string RetrieveSetting(String name)
         {
             var cloudconfig = CloudConfigurationManager.GetSetting(name);
 
             return String.IsNullOrWhiteSpace(cloudconfig) ? ConfigurationManager.AppSettings[name] : cloudconfig;
         }
 
-        private string GetCredentials()
+        private static string GetCredentials()
         {
             var configToken = RetrieveSetting(ConfigTokenName);
 
@@ -122,7 +142,7 @@
         }
 
 
-        private bool GetIsValidGuid(string guidString)
+        private static bool GetIsValidGuid(string guidString)
         {
             if (String.IsNullOrEmpty(guidString))
                 return false;
@@ -147,21 +167,18 @@
 
         protected virtual void EnsureOpenConnection()
         {
-            if (_leClient == null || !_leClient.Connected)
+            if (_leClient != null && _leClient.Connected) return;
+            
+            _leClient = new TcpClient(LeApiUrl, (UseSsl ? LeApiTokenTlsPort : LeApiTokenPort)) { NoDelay = true };
+            
+            if (UseSsl)
             {
-                _leClient = new TcpClient(LeApiUrl, (UseSsl ? LeApiTokenTlsPort : LeApiTokenPort))
-                {
-                    NoDelay = true
-                };
-                
-                if (UseSsl)
-                {
-                    Stream = new SslStream(_leClient.GetStream(), false, (sender, cert, chain, errors) => cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
-                    ((SslStream)Stream).AuthenticateAsClient(LeApiUrl);
-                }
-
-                Stream = _leClient.GetStream();
+                Stream = new SslStream(_leClient.GetStream(), false, (sender, cert, chain, errors) => cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
+                //posible authentication exceptions aren't caught because we want to see them in the eventwvr
+                ((SslStream)Stream).AuthenticateAsClient(LeApiUrl);
             }
+
+            Stream = _leClient.GetStream();
         }
       
         // Logentries API server certificate. 
