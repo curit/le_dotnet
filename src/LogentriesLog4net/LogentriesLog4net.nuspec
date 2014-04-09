@@ -5,12 +5,18 @@
     <version>0.1.3</version>
     <title>Curit Logentries Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
-    <owners>Curit</owners>
+    <owners>Curit, Logentries</owners>
     <projectUrl>https://github.com/Curit/le_dotnet</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Appender for log4net for logentries.com</description>
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log</tags>
+    <releaseNotes>
+      Handles some more exception when trying to send to logentries. 
+      Because a failing collection caused w3wp to fail hard taking a lot of time. 
+      Doesn't catch the AuthenticationException on purpose because we want to know 
+      when we need to make a new package when something over at logentries changes.
+    </releaseNotes>
     <dependencies>
       <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="[2,3)"/>
       <dependency id="log4net" />
