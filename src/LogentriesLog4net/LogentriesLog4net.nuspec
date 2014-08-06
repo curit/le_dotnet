@@ -2,8 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
     <id>curit.logentries.log4net</id>
-    <version>0.1.5</version>
-    <title>Curit Logentries Appender</title>
+    <version>0.1.6</version>
+    <title>Curit Logentries log4net Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
     <owners>Curit, Logentries</owners>
     <projectUrl>https://github.com/Curit/le_dotnet</projectUrl>
