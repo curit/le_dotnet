@@ -9,16 +9,23 @@
     using LogentriesCore;
     using Xunit;
 
-    public class TestLogger : AsyncLogger
+    public class TestLogger : AsyncLoggerBase
     {
         public void SetStream(Stream stream)
         {
-            Stream = stream;
+            this.Stream = stream;
         }
 
         protected override void EnsureOpenConnection()
         {
-            
+        }
+
+        protected override void CloseConnection()
+        {
+        }
+
+        public override void Dispose()
+        {
         }
     }
 
@@ -48,6 +55,8 @@
         [Fact]
         public void ShouldThrowExceptionWhenNoTokenSpecified()
         {
+            ConfigurationManager.AppSettings["Logentries.Token"] = null;
+
             //Arrange
             using (var ms = new MemoryStream())
             {

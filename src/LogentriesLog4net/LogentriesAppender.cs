@@ -6,34 +6,53 @@
 
     public class LogentriesAppender : AppenderSkeleton
     {
-        private readonly AsyncLogger _logentriesAsync;
+        private IAsyncLogger _logentriesAsync;
 
-        public LogentriesAppender()
+        private IAsyncLogger LogentriesAsync
         {
-            _logentriesAsync = new AsyncLogger();
+            get
+            {
+                _logentriesAsync = _logentriesAsync ?? (UseHttpPut ? (IAsyncLogger)new AsyncHttpLogger() : new AsyncTcpLogger());
+                return _logentriesAsync;
+            }
         }
+
+        public bool UseHttpPut { get; set; }
 
         public string Token
         {
-            get { return _logentriesAsync.Token; }
-            set { _logentriesAsync.Token = value; }
+            get { return LogentriesAsync.Token; }
+            set { LogentriesAsync.Token = value; }
         }
 
         public bool ImmediateFlush
         {
-            get { return _logentriesAsync.ImmediateFlush; }
-            set { _logentriesAsync.ImmediateFlush = value; }
+            get { return LogentriesAsync.ImmediateFlush; }
+            set { LogentriesAsync.ImmediateFlush = value; }
         }
 
         public bool UseSsl
         {
-            get { return _logentriesAsync.UseSsl; }
-            set { _logentriesAsync.UseSsl = value; }
+            get { return LogentriesAsync.UseSsl; }
+            set { LogentriesAsync.UseSsl = value; }
         }
-    
+
+        public string AccountKey
+        {
+            get { return LogentriesAsync.AccountKey; }
+            set { LogentriesAsync.AccountKey = value; }
+        }
+
+        public string Location
+        {
+            get { return LogentriesAsync.Location; }
+            set { LogentriesAsync.Location = value; }
+        }
+
+
         protected override void Append(LoggingEvent loggingEvent)
         {
-            _logentriesAsync.AddLine(RenderLoggingEvent(loggingEvent));
+            LogentriesAsync.AddLine(RenderLoggingEvent(loggingEvent));
         }
 
         protected override void Append(LoggingEvent[] loggingEvents)

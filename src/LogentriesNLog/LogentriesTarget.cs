@@ -5,25 +5,48 @@
     [Target("Logentries")]
     public sealed class LogentriesTarget : TargetWithLayout
     {
-        private readonly AsyncLogger _logentriesAsync;
+        private IAsyncLogger _logentriesAsync;
 
-        public LogentriesTarget()
+
+        private IAsyncLogger LogentriesAsync
         {
-            _logentriesAsync = new AsyncLogger();
+            get
+            {
+                _logentriesAsync = _logentriesAsync ?? (UseHttpPut ? (IAsyncLogger)new AsyncHttpLogger() : new AsyncTcpLogger());
+                return _logentriesAsync;
+            }
         }
 
-        /** Option to set Token programmatically or in Appender Definition */
+        public bool UseHttpPut { get; set; }
+
         public string Token
         {
-            get { return _logentriesAsync.Token; }
-            set { _logentriesAsync.Token = value; }
+            get { return LogentriesAsync.Token; }
+            set { LogentriesAsync.Token = value; }
         }
 
-        /** SSL/TLS parameter flag */
+        public bool ImmediateFlush
+        {
+            get { return LogentriesAsync.ImmediateFlush; }
+            set { LogentriesAsync.ImmediateFlush = value; }
+        }
+
         public bool UseSsl
         {
-            get { return _logentriesAsync.UseSsl; }
-            set { _logentriesAsync.UseSsl = value; }
+            get { return LogentriesAsync.UseSsl; }
+            set { LogentriesAsync.UseSsl = value; }
+        }
+
+        public string AccountKey
+        {
+            get { return LogentriesAsync.AccountKey; }
+            set { LogentriesAsync.AccountKey = value; }
+        }
+
+        public string Location
+        {
+            get { return LogentriesAsync.Location; }
+            set { LogentriesAsync.Location = value; }
         }
 
         protected override void Write(LogEventInfo logEvent)

@@ -40,7 +40,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncLogger.cs" />
+    <Compile Include="AsyncHttpLogger.cs" />
+    <Compile Include="AsyncLoggerBase.cs" />
+    <Compile Include="AsyncTcpLogger.cs" />
+    <Compile Include="IAsyncLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
     <id>curit.logentries.log4net</id>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
     <title>Curit Logentries Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
     <owners>Curit, Logentries</owners>
@@ -12,7 +12,8 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log</tags>
     <releaseNotes>
-      Handles some more exception when trying to send to logentries. 
+      0.1.4 - Adds support for HttpPut logging back in. Nicer abstraction of Loggers.
+      0.1.3 - Handles some more exception when trying to send to logentries. 
       Because a failing collection caused w3wp to fail hard taking a lot of time. 
       Doesn't catch the AuthenticationException on purpose because we want to know 
       when we need to make a new package when something over at logentries changes.
