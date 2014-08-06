@@ -10,7 +10,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Appender for log4net for logentries.com</description>
     <copyright>Copyright 2014</copyright>
-    <tags>logging Logentries log</tags>
+    <tags>logging Logentries log log4net</tags>
     <releaseNotes>
       0.1.5 - Adds the ability to set ports from AppSettings. "Port" and "SecurePort".
       0.1.4 - Adds support for HttpPut logging back in. Nicer abstraction of Loggers.
