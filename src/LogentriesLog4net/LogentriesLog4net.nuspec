@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
     <id>curit.logentries.log4net</id>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <title>Curit Logentries Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
     <owners>Curit, Logentries</owners>
@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log</tags>
     <releaseNotes>
+      0.1.5 - Adds the ability to set ports from AppSettings. "Port" and "SecurePort".
       0.1.4 - Adds support for HttpPut logging back in. Nicer abstraction of Loggers.
       Adds token logging to different port. Makes ports changable. Uses data.logentries.com 
       because it accepts more posibilites. Changes certificate accordingly. Fixes some bugs 
