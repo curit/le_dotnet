@@ -1,4 +1,4 @@
-# WARNING USE AT OWN RISK GO ON OVER TO [logentries on github](http://github.com/logentries/le_dotnet) for the official repository!
+[![Build status](https://ci.appveyor.com/api/projects/status/a2ox11hp7wqr0knq)](https://ci.appveyor.com/project/albertjan/le-dotnet)
 
 # Logging To Logentries.
 
