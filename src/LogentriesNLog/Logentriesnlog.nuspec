@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+    <id>curit.logentries.nlog</id>
+    <version>0.1.5</version>
+    <title>Curit Logentries Appender</title>
+    <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
+    <owners>Curit, Logentries</owners>
+    <projectUrl>https://github.com/Curit/le_dotnet</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Appender for log4net for logentries.com</description>
+    <copyright>Copyright 2014</copyright>
+    <tags>logging Logentries log nlog</tags>
+    <releaseNotes>
+      First version.
+    </releaseNotes>
+    <dependencies>
+      <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="[2,3)"/>
+      <dependency id="NLog" />
+    </dependencies>
+  </metadata>
+</package>
