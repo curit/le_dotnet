@@ -43,10 +43,21 @@
             set { LogentriesAsync.AccountKey = value; }
         }
 
-        public string Location
+        public string LocationName
         {
-            get { return LogentriesAsync.Location; }
-            set { LogentriesAsync.Location = value; }
+            get { return LogentriesAsync.LocationName; }
+            set { LogentriesAsync.LocationName = value; }
+        }
+
+        public int Port
+        {
+            get { return LogentriesAsync.Port; }
+            set { LogentriesAsync.Port = value; }
+        }
+        public int SecurePort
+        {
+            get { return LogentriesAsync.SecurePort; }
+            set { LogentriesAsync.SecurePort = value; }
         }
 
         protected override void Write(LogEventInfo logEvent)

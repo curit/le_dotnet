@@ -13,7 +13,7 @@
     public abstract class AsyncLoggerBase : IAsyncLogger
     {
         // Logentries API server address. 
-        protected const string LeApiUrl = "api.logentries.com";
+        protected const string LeApiUrl = "data.logentries.com";
 
         // New Logentries configuration names.
         protected const string ConfigTokenName = "Logentries.Token";
@@ -22,7 +22,7 @@
         protected const string ConfigAccountKey = "Logentries.AccountKey";
 
         // New Logentries configuration names.
-        protected const string ConfigLocation = "Logentries.Location";
+        protected const string ConfigLocation = "Logentries.LocationName";
 
         // Newline char to trim from message for formatting. 
         protected static readonly char[] TrimChars = {'\r', '\n'};
@@ -42,40 +42,48 @@
         protected static readonly X509Certificate2 LeApiServerCertificate =
             new X509Certificate2(Encoding.UTF8.GetBytes(
                 @"-----BEGIN CERTIFICATE-----
-MIIFSjCCBDKgAwIBAgIDCQpNMA0GCSqGSIb3DQEBBQUAMGExCzAJBgNVBAYTAlVT
-MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMR0wGwYDVQQLExREb21haW4gVmFsaWRh
-dGVkIFNTTDEbMBkGA1UEAxMSR2VvVHJ1c3QgRFYgU1NMIENBMB4XDTE0MDQxNTEz
-NTcxNVoXDTE2MDkxMzA0MTMzMFowgcExKTAnBgNVBAUTIEhpL1RHbXlmUEpJYTFy
-b0NQdlJ1U1NNRVdLOFp0NUtmMRMwEQYDVQQLEwpHVDAzOTM4NjcwMTEwLwYDVQQL
-EyhTZWUgd3d3Lmdlb3RydXN0LmNvbS9yZXNvdXJjZXMvY3BzIChjKTEyMS8wLQYD
-VQQLEyZEb21haW4gQ29udHJvbCBWYWxpZGF0ZWQgLSBRdWlja1NTTChSKTEbMBkG
-A1UEAxMSYXBpLmxvZ2VudHJpZXMuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
-MIIBCgKCAQEAwGsgjVb/pn7Go1jqNQVFsN+VEMRFpu7bJ5i+Lv/gY9zXBDGULr3d
-j9/hB/pa49nLUpy9GsaFru2AjNoveoVoe5ng2QhZRlUn77hxkoZsaiD+rrH/D/Yp
-LP3b/pNQg+nNTC81uwbhlxjIoeMSaPGjr1SFjZ1StCprZKFRu3IV+2/wZ+STUz/L
-aA3r6J86DRptasbzYMkDyWlUzN3nhYUcPUNrd4jSk+soSDEuDpHMahgRdQBo6Dht
-EKCSY+vB5ZIgEydI7mra8ygRjXotvc0zeb8Jvo8ZhyLDwvxjgo9F6Li3h/tfAjRR
-4ngV7yg9o8MgXN852GMHpUxzqhygLeyqSQIDAQABo4IBqDCCAaQwHwYDVR0jBBgw
-FoAUjPTZkwpHvACgSs5LdW6gtrCyfvwwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQW
-MBQGCCsGAQUFBwMBBggrBgEFBQcDAjAdBgNVHREEFjAUghJhcGkubG9nZW50cmll
-cy5jb20wQQYDVR0fBDowODA2oDSgMoYwaHR0cDovL2d0c3NsZHYtY3JsLmdlb3Ry
-dXN0LmNvbS9jcmxzL2d0c3NsZHYuY3JsMB0GA1UdDgQWBBRowYR/aaGeiRRQxbaV
-1PI8hS4m9jAMBgNVHRMBAf8EAjAAMHUGCCsGAQUFBwEBBGkwZzAsBggrBgEFBQcw
-AYYgaHR0cDovL2d0c3NsZHYtb2NzcC5nZW90cnVzdC5jb20wNwYIKwYBBQUHMAKG
-K2h0dHA6Ly9ndHNzbGR2LWFpYS5nZW90cnVzdC5jb20vZ3Rzc2xkdi5jcnQwTAYD
-VR0gBEUwQzBBBgpghkgBhvhFAQc2MDMwMQYIKwYBBQUHAgEWJWh0dHA6Ly93d3cu
-Z2VvdHJ1c3QuY29tL3Jlc291cmNlcy9jcHMwDQYJKoZIhvcNAQEFBQADggEBAAzx
-g9JKztRmpItki8XQoGHEbopDIDMmn4Q7s9k7L9nT5gn5XCXdIHnsSe8+/2N7tW4E
-iHEEWC5G6Q16FdXBwKjW2LrBKaP7FCRcqXJSI+cfiuk0uywkGBTXpqBVClQRzypd
-9vZONyFFlLGUwUC1DFVxe7T77Dv+pOPuJ7qSfcVUnVtzpLMMWJsDG6NHpy0JhsS9
-wVYQgpYWRRZ7bJyfRCJxzIdYF3qy/P9NWyZSlDUuv11s1GSFO2pNd34p59GacVAL
-BJE6y5eOPTSbtkmBW/ukaVYdI5NLXNer3IaK3fetV3LvYGOaX8hR45FI1pvyKYvf
-S5ol3bQmY1mv78XKkOk=
+MIIFXjCCBEagAwIBAgIRAN5SEMXHPPIIhx4xrZ5XKAowDQYJKoZIhvcNAQELBQAwgZAxCzAJBgNV
+BAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQxGjAY
+BgNVBAoTEUNPTU9ETyBDQSBMaW1pdGVkMTYwNAYDVQQDEy1DT01PRE8gUlNBIERvbWFpbiBWYWxp
+ZGF0aW9uIFNlY3VyZSBTZXJ2ZXIgQ0EwHhcNMTMwOTMwMDAwMDAwWhcNMTYwOTMwMjM1OTU5WjBW
+MSEwHwYDVQQLExhEb21haW4gQ29udHJvbCBWYWxpZGF0ZWQxEzARBgNVBAsTCkNPTU9ETyBTU0wx
+HDAaBgNVBAMTE2RhdGEubG9nZW50cmllcy5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQC10Z4dC/BzAtnCIBOiINqS05cGq/DgyF/upGY3vNp9M2zpwMnPGiaDktjtUnX65BT19o3v
+2CULw1LrJODxBU6leEjGjckZst72U0WOcX2vvW3WgNuCowYrtxycdZcdIg/2BNS79X5wlT1ZemSw
+6rj5HwkjF7c4rHLoh1EcMOqQHvHg9Zi3LC7XSuqmFoteoZZ6IkISIMq0gpD9Pw2hcwi8Xh8u6wMW
+jt/spHRMblNYbw36QxcOwAjfiTjcsFMgqjBGO/1ME7CE3uA7V0WD3TSPw5p1BIlsSWkA5YKF51Z+
+fiKEl5oX2UwMjpQAq3PN2++XP4v9127gYjCgXv42z0qhAgMBAAGjggHqMIIB5jAfBgNVHSMEGDAW
+gBSQr2o6lFoL2JDqElZz30O0Oija5zAdBgNVHQ4EFgQUOTkBTLSVP5hLphrAEG8BrohxObswDgYD
+VR0PAQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
+MFAGA1UdIARJMEcwOwYMKwYBBAGyMQECAQMEMCswKQYIKwYBBQUHAgEWHWh0dHBzOi8vc2VjdXJl
+LmNvbW9kby5uZXQvQ1BTMAgGBmeBDAECATBUBgNVHR8ETTBLMEmgR6BFhkNodHRwOi8vY3JsLmNv
+bW9kb2NhLmNvbS9DT01PRE9SU0FEb21haW5WYWxpZGF0aW9uU2VjdXJlU2VydmVyQ0EuY3JsMIGF
+BggrBgEFBQcBAQR5MHcwTwYIKwYBBQUHMAKGQ2h0dHA6Ly9jcnQuY29tb2RvY2EuY29tL0NPTU9E
+T1JTQURvbWFpblZhbGlkYXRpb25TZWN1cmVTZXJ2ZXJDQS5jcnQwJAYIKwYBBQUHMAGGGGh0dHA6
+Ly9vY3NwLmNvbW9kb2NhLmNvbTA3BgNVHREEMDAughNkYXRhLmxvZ2VudHJpZXMuY29tghd3d3cu
+ZGF0YS5sb2dlbnRyaWVzLmNvbTANBgkqhkiG9w0BAQsFAAOCAQEABXgfABRiI3+U3nmkin+UNdMd
+7+oPk/pq+caCoAWhcq0koced+egZU2FvinBiKq4oZTEuvbsJ+7BnU18XmlIJHL3Yq9PTD2e6gZ7/
+9P18n1TsEMunR1I+QE3M6nK0lsvfdRs7mXfHWkipXEawOxYLd7UT9qhGP/Aoe/QhYhdYfaWZDl2A
++cOjhp8Aq0Vixpva/mPA/qYHAqLtnFYZKEl+LF1ZFO6d6280u4E4kwRGU1XO0NBip1NG2bEh4wsK
+RcV+srSS810KCFOkZ+SoInyyPmDUTO5Hokq+nSqNH7SUMMJAeItzt7ydFWTiGAHjvOfg5HityALH
+YyQWcJWa+MwmoA==
 -----END CERTIFICATE-----"));
 
         private string _token;
         private string _location;
         private string _accountKey;
+
+        protected AsyncLoggerBase()
+        {
+            this.Queue = new ConcurrentQueue<string>();
+
+            this.WorkerThread = new Thread(Run)
+            {
+                Name = "Logentries Logger",
+                IsBackground = true
+            };
+            this.WorkerThread.Start();
+        }
 
         private static bool GetIsValidGuid(string guidString)
         {
@@ -95,8 +103,7 @@ S5ol3bQmY1mv78XKkOk=
                 return configToken;
             }
 
-            throw new ConfigurationErrorsException(
-                "No LogEntries Token configured make sure your have Logentries.Token in your app.config or cloudconfig.");
+            return null;
         }
 
         private static string RetrieveSetting(String name)
@@ -172,18 +179,6 @@ S5ol3bQmY1mv78XKkOk=
             }
         }
 
-        public AsyncLoggerBase()
-        {
-            this.Queue = new ConcurrentQueue<string>();
-
-            this.WorkerThread = new Thread(Run)
-            {
-                Name = "Logentries Logger",
-                IsBackground = true
-            };
-            this.WorkerThread.Start();
-        }
-
         public string Token
         {
             get
@@ -195,7 +190,7 @@ S5ol3bQmY1mv78XKkOk=
             set { _token = value; }
         }
 
-        public string Location
+        public string LocationName
         {
             get
             {
@@ -215,15 +210,17 @@ S5ol3bQmY1mv78XKkOk=
             set { _accountKey = value; }
         }
 
+        public int SecurePort { get; set; }
+        public int Port { get; set; }
         public bool UseSsl { get; set; }
         public bool ImmediateFlush { get; set; }
 
         public virtual void AddLine(string line)
         {
-            if (Token == null && (AccountKey == null || Location == null))
+            if (Token == null && (AccountKey == null || LocationName == null))
             {
                 throw new ConfigurationErrorsException(
-                    "No LogEntries Credentials configured make sure your have \"Logentries.Token\" in your app.config or cloudconfig. Or when you are using HTTP PUT you should have \"Logentries.AccountKey\" and \"Logentries.Location\" specified in your config. Or in the configuration of your logger.");
+                    "No LogEntries Credentials configured make sure your have \"Logentries.Token\" in your app.config or cloudconfig. Or when you are using HTTP PUT you should have \"Logentries.AccountKey\" and \"Logentries.LocationName\" specified in your config. Or in the configuration of your logger.");
             }
 
             this.Queue.Enqueue(line.TrimEnd(TrimChars));

@@ -6,11 +6,11 @@
 
     public class AsyncTcpLogger : AsyncLoggerBase
     {
-        // Port number for token logging on Logentries API server. 
-        private const int LeApiTokenPort = 10000;
-
-        // Port number for TLS encrypted token logging on Logentries API server 
-        private const int LeApiTokenTlsPort = 20000;
+        public AsyncTcpLogger()
+        {
+            Port = 10000;
+            SecurePort = 20000;
+        }
 
         private TcpClient _leClient;
 
@@ -18,16 +18,20 @@
         {
             if (_leClient != null && _leClient.Connected) return;
             
-            _leClient = new TcpClient(LeApiUrl, (UseSsl ? LeApiTokenTlsPort : LeApiTokenPort)) { NoDelay = true };
-            
+            _leClient = new TcpClient(LeApiUrl, (UseSsl ? SecurePort : Port)) { NoDelay = true };
+
             if (UseSsl)
             {
-                Stream = new SslStream(_leClient.GetStream(), false, (sender, cert, chain, errors) => cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
+                Stream = new SslStream(_leClient.GetStream(), false,
+                    (sender, cert, chain, errors) =>
+                        cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
                 //posible authentication exceptions aren't caught because we want to see them in the eventwvr
-                ((SslStream)Stream).AuthenticateAsClient(LeApiUrl);
+                ((SslStream) Stream).AuthenticateAsClient(LeApiUrl);
             }
-
-            Stream = _leClient.GetStream();
+            else
+            {
+                Stream = _leClient.GetStream();
+            }
         }
 
         protected override void CloseConnection()

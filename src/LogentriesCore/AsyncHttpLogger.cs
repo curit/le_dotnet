@@ -7,11 +7,11 @@
 
     public class AsyncHttpLogger : AsyncLoggerBase
     {
-        // Port number for HTTP PUT logging on Logentries API server. 
-        private const int LeApiHttpPort = 80;
-
-        // Port number for SSL HTTP PUT logging on Logentries API server. 
-        private const int LeApiHttpsPort = 443;
+        public AsyncHttpLogger()
+        {
+            Port = 80;
+            SecurePort = 443;
+        }
 
         private TcpClient _leClient;
         
@@ -19,18 +19,22 @@
         {
             if (_leClient != null && _leClient.Connected) return;
 
-            _leClient = new TcpClient(LeApiUrl, (UseSsl ? LeApiHttpPort : LeApiHttpsPort)) { NoDelay = true };
+            _leClient = new TcpClient(LeApiUrl, (UseSsl ? SecurePort : Port)) { NoDelay = true };
 
             if (UseSsl)
             {
-                Stream = new SslStream(_leClient.GetStream(), false, (sender, cert, chain, errors) => cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
+                Stream = new SslStream(_leClient.GetStream(), false,
+                    (sender, cert, chain, errors) =>
+                        cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
                 //posible authentication exceptions aren't caught because we want to see them in the eventwvr
-                ((SslStream)Stream).AuthenticateAsClient(LeApiUrl);
+                ((SslStream) Stream).AuthenticateAsClient(LeApiUrl);
+            }
+            else
+            {
+                Stream = _leClient.GetStream();
             }
 
-            Stream = _leClient.GetStream();
-
-            var header = String.Format("PUT /{0}/hosts/{1}/?realtime=1 HTTP/1.1\r\n\r\n", AccountKey, Location);
+            var header = String.Format("PUT /{0}/hosts/{1}/{2}?realtime=1 HTTP/1.1\r\n\r\n", AccountKey, LocationName, Token);
             Stream.Write(Encoding.ASCII.GetBytes(header), 0, header.Length);
         }
 

@@ -7,9 +7,10 @@
         bool UseSsl { get; set; }
         bool ImmediateFlush { get; set; }
         string Token { get; set; }
-        string Location { get; set; }
+        string LocationName { get; set; }
         string AccountKey { get; set; }
-
+        int SecurePort { get; set; }
+        int Port { get; set; }
         void AddLine(string line);
     }
 }
