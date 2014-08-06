@@ -27,3 +27,4 @@ Thumbs.db
 /src/LogentriesLog4net/*.nupkg
 
 src/Test/*
+*.nupkg

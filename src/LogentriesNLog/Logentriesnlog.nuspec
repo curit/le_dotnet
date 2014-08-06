@@ -8,7 +8,7 @@
     <owners>Curit, Logentries</owners>
     <projectUrl>https://github.com/Curit/le_dotnet</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Appender for log4net for logentries.com</description>
+    <description>Appender for nlog for logentries.com</description>
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log nlog</tags>
     <releaseNotes>
