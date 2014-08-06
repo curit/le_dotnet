@@ -13,6 +13,10 @@
     <tags>logging Logentries log</tags>
     <releaseNotes>
       0.1.4 - Adds support for HttpPut logging back in. Nicer abstraction of Loggers.
+      Adds token logging to different port. Makes ports changable. Uses data.logentries.com 
+      because it accepts more posibilites. Changes certificate accordingly. Fixes some bugs 
+      in securelogging. Changes "Location" configuration to "LocationName" because it's used
+      in log4net for something else.
       0.1.3 - Handles some more exception when trying to send to logentries. 
       Because a failing collection caused w3wp to fail hard taking a lot of time. 
       Doesn't catch the AuthenticationException on purpose because we want to know 
