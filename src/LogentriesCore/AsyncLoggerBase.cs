@@ -16,16 +16,22 @@
         protected const string LeApiUrl = "data.logentries.com";
 
         // New Logentries configuration names.
-        protected const string ConfigTokenName = "Logentries.Token";
+        private const string ConfigTokenName = "Logentries.Token";
 
         // New Logentries configuration names.
-        protected const string ConfigAccountKey = "Logentries.AccountKey";
+        private const string ConfigAccountKey = "Logentries.AccountKey";
 
         // New Logentries configuration names.
-        protected const string ConfigLocation = "Logentries.LocationName";
+        private const string ConfigLocation = "Logentries.LocationName";
+
+        // Secure pot setting
+        private const string ConfigSecurePort = "Logentries.SecurePort";
+
+        // Port setting
+        private const string ConfigPort = "Logentries.Port";
 
         // Newline char to trim from message for formatting. 
-        protected static readonly char[] TrimChars = {'\r', '\n'};
+        private static readonly char[] TrimChars = {'\r', '\n'};
 
         // Unicode line separator character 
         private const string LineSeparator = "\u2028";
@@ -72,7 +78,9 @@ YyQWcJWa+MwmoA==
         private string _token;
         private string _location;
         private string _accountKey;
-
+        private int _securePort;
+        private int _port;
+        
         protected AsyncLoggerBase()
         {
             this.Queue = new ConcurrentQueue<string>();
@@ -210,8 +218,26 @@ YyQWcJWa+MwmoA==
             set { _accountKey = value; }
         }
 
-        public int SecurePort { get; set; }
-        public int Port { get; set; }
+        public int SecurePort
+        {
+            get
+            {
+                _securePort = RetrieveSetting(ConfigSecurePort) != null ? int.Parse(RetrieveSetting(ConfigSecurePort)) : _securePort; ;
+                return _securePort;
+            }
+            set { _securePort = value; }
+        }
+
+        public int Port
+        {
+            get
+            {
+                _port = RetrieveSetting(ConfigPort) != null ? int.Parse(RetrieveSetting(ConfigPort)) : _port;
+                return _port;
+            }
+            set { _port = value; }
+        }
+
         public bool UseSsl { get; set; }
         public bool ImmediateFlush { get; set; }
 
