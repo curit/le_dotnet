@@ -80,7 +80,8 @@
 
         protected override void OnClose()
         {
-            _logentriesAsync.Dispose();
+            if (_logentriesAsync != null) 
+                _logentriesAsync.Dispose();
         }
     }
 }
