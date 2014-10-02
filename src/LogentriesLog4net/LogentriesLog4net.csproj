@@ -52,7 +52,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="curit.logentries.log4net.0.1.0.nupkg" />
     <None Include="LogentriesLog4net.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
