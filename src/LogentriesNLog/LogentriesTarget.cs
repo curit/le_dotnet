@@ -63,22 +63,6 @@
         protected override void Write(LogEventInfo logEvent)
         {
             var renderedEvent = Layout.Render(logEvent);
-
-            try
-            {
-                //NLog can pass null references of Exception
-                if (logEvent.Exception != null)
-                {
-                    var excep = logEvent.Exception.ToString();
-                    if (excep.Length > 0)
-                    {
-                        renderedEvent += ", ";
-                        renderedEvent += excep;
-                    }
-                }
-            }
-            catch { }
-
             _logentriesAsync.AddLine(renderedEvent);
         }
 
