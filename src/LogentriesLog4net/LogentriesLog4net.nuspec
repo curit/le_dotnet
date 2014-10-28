@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
     <id>curit.logentries.log4net</id>
-    <version>0.1.8</version>
+    <version>0.1.9</version>
     <title>Curit Logentries log4net Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
     <owners>Curit, Logentries</owners>
@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log log4net</tags>
     <releaseNotes>
+      0.1.9 - Get Token from environment variable when it's not found in the config.
       0.1.7 - Close on startup failed because it wasn't opened yet.
       0.1.5 - Adds the ability to set ports from AppSettings. "Port" and "SecurePort".
       0.1.4 - Adds support for HttpPut logging back in. Nicer abstraction of Loggers.
