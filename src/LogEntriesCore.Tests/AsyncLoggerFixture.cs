@@ -33,6 +33,11 @@
     {
         private static Guid TestToken = new Guid("2bfbea1e-10c3-4419-bdad-7e6435882e1f");
 
+        public AsyncLoggerFixture()
+        {
+            ConfigurationManager.AppSettings["Logentries.Token"] = null;
+        }
+
         [Fact]
         public void ShouldGetKeyFromEnvironmentVariableWhenNotSpecifiedInAppConfigOrCloudConfig()
         {
