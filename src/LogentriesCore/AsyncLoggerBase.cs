@@ -117,8 +117,24 @@ YyQWcJWa+MwmoA==
         private static string RetrieveSetting(String name)
         {
             var cloudconfig = CloudConfigurationManager.GetSetting(name);
+            if (!String.IsNullOrWhiteSpace(cloudconfig))
+            {
+                return cloudconfig;
+            }
 
-            return String.IsNullOrWhiteSpace(cloudconfig) ? ConfigurationManager.AppSettings[name] : cloudconfig;
+            var appconfig = ConfigurationManager.AppSettings[name];
+            if (!String.IsNullOrWhiteSpace(appconfig))
+            {
+                return appconfig;
+            }
+
+            var envconfig = Environment.GetEnvironmentVariable(name);
+            if (!String.IsNullOrWhiteSpace(envconfig))
+            {
+                return envconfig;
+            }
+
+            return null;
         }
         
         private void Run()

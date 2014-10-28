@@ -34,6 +34,19 @@
         private static Guid TestToken = new Guid("2bfbea1e-10c3-4419-bdad-7e6435882e1f");
 
         [Fact]
+        public void ShouldGetKeyFromEnvironmentVariableWhenNotSpecifiedInAppConfigOrCloudConfig()
+        {
+            //Arrange
+            Environment.SetEnvironmentVariable("Logentries.Token", TestToken.ToString());
+
+            //Act
+            var asyncLogger = new TestLogger();
+
+            //Assert
+            Assert.Equal(asyncLogger.Token, TestToken.ToString());
+        }
+
+        [Fact]
         public void ShouldWriteLineToStream()
         {
             //Arrange
