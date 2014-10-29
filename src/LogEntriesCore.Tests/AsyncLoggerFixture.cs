@@ -36,6 +36,7 @@
         public AsyncLoggerFixture()
         {
             ConfigurationManager.AppSettings["Logentries.Token"] = null;
+            Environment.SetEnvironmentVariable("Logentries.Token", null);
         }
 
         [Fact]
