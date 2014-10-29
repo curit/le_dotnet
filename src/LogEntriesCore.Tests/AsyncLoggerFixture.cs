@@ -153,10 +153,10 @@
             //Arrange
             var expected = new Dictionary<Style, string>
             {
-                { Style.Default, '\x1b' + "[30;47;0m" },
-                { new Style { ForegroundColor = ForegroundColor.White, BackgroundColor = BackgroundColor.Red },  '\x1b' + "[37;41;0m" },
-                { new Style { Attributes = new [] {Attribute.Bold, Attribute.Underline, }},  '\x1b' + "[30;47;1;4m" },
-                { new Style { BackgroundColor = BackgroundColor.Blue },  '\x1b' + "[30;44;0m" }
+                { Style.Default, "\x1b[30;47;0m" },
+                { new Style { ForegroundColor = ForegroundColor.White, BackgroundColor = BackgroundColor.Red },  "\x1b[37;41;0m" },
+                { new Style { Attributes = new List<Attribute> {Attribute.Bold, Attribute.Underline, }},  "\x1b[30;47;1;4m" },
+                { new Style { BackgroundColor = BackgroundColor.Blue },  "\x1b[30;44;0m" }
             };
 
             //Act, Assert

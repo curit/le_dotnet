@@ -176,7 +176,7 @@
             {
                 return new Style
                 {
-                    Attributes = Attributes,
+                    Attributes = Attributes.Count == 0 ? Style.Default.Attributes : Attributes,
                     ForegroundColor = ForeColor,
                     BackgroundColor = BackColor
                 };

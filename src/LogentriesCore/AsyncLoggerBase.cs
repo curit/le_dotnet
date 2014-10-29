@@ -63,7 +63,7 @@
 
         public override string ToString()
         {
-            return '\x1b' + "[" + (int)ForegroundColor + ";" + (int)BackgroundColor + ";" + Attributes.Aggregate("", (s, attribute) => s == "" ? ((int)attribute).ToString() : s + ";" + (int)attribute) + "m";
+            return "\x1b[" + (int)ForegroundColor + ";" + (int)BackgroundColor + ";" + Attributes.Aggregate("", (s, attribute) => s == "" ? ((int)attribute).ToString() : s + ";" + (int)attribute) + "m";
         }
     }
 
