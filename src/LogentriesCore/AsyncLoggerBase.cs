@@ -2,13 +2,70 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
+    using System.Linq;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using Microsoft.WindowsAzure;
+
+    public enum ForegroundColor
+    {
+        Black = 30,
+        Red = 31,
+        Geen = 32,
+        Yellow = 33,
+        Blue = 34,
+        Mangenta = 35,
+        Cyan = 36,
+        White = 37
+    }
+
+    public enum BackgroundColor
+    {
+        Black = 40,
+        Red = 41,
+        Geen = 42,
+        Yellow = 44,
+        Blue = 44,
+        Mangenta = 45,
+        Cyan = 46,
+        White = 47
+    }
+
+    public enum Attribute
+    {
+        Normal = 0,
+        Bold = 1,
+        Underline = 4,
+        Test = 2
+    }
+
+    public class Style
+    {
+        public Style()
+        {
+            Attributes = new List<Attribute> { Attribute.Normal };
+            BackgroundColor = BackgroundColor.White;
+            ForegroundColor = ForegroundColor.Black;
+        }
+
+        public static readonly Style Default = new Style ();
+        
+        public List<Attribute> Attributes { get; set; }
+
+        public BackgroundColor BackgroundColor { get; set; }
+
+        public ForegroundColor ForegroundColor { get; set; }
+
+        public override string ToString()
+        {
+            return '\x1b' + "[" + (int)ForegroundColor + ";" + (int)BackgroundColor + ";" + Attributes.Aggregate("", (s, attribute) => s == "" ? ((int)attribute).ToString() : s + ";" + (int)attribute) + "m";
+        }
+    }
 
     public abstract class AsyncLoggerBase : IAsyncLogger
     {
@@ -40,7 +97,7 @@
         private Thread WorkerThread { get; set; }
 
         // Internal queue of messages to be sent.
-        private ConcurrentQueue<string> Queue { get; set; }
+        private ConcurrentQueue<Tuple<string, Style>> Queue { get; set; }
 
         protected Stream Stream;
 
@@ -83,7 +140,7 @@ YyQWcJWa+MwmoA==
         
         protected AsyncLoggerBase()
         {
-            this.Queue = new ConcurrentQueue<string>();
+            this.Queue = new ConcurrentQueue<Tuple<string, Style>>();
 
             this.WorkerThread = new Thread(Run)
             {
@@ -144,12 +201,13 @@ YyQWcJWa+MwmoA==
                 while (true)
                 {
                     // Take data from queue.
-                    string line;
+                    Tuple<string, Style> line;
 
                     if (this.Queue.TryDequeue(out line))
                     {
+                        
                         // Replace newline chars with line separator to format multi-line events nicely.
-                        var finalLine = Token + line.Replace(Environment.NewLine, LineSeparator)
+                        var finalLine = Token + line.Item2 + line.Item1.Replace(Environment.NewLine, LineSeparator)
                             .Replace("\n", LineSeparator)
                             .Replace("\r", LineSeparator) + "\n";
 
@@ -257,15 +315,20 @@ YyQWcJWa+MwmoA==
         public bool UseSsl { get; set; }
         public bool ImmediateFlush { get; set; }
 
-        public virtual void AddLine(string line)
+        public virtual void AddLine(string line, Style style = null)
         {
+            if (style == null)
+            {
+                style = Style.Default;
+            }
+
             if (Token == null && (AccountKey == null || LocationName == null))
             {
                 throw new ConfigurationErrorsException(
                     "No LogEntries Credentials configured make sure your have \"Logentries.Token\" in your app.config or cloudconfig. Or when you are using HTTP PUT you should have \"Logentries.AccountKey\" and \"Logentries.LocationName\" specified in your config. Or in the configuration of your logger.");
             }
 
-            this.Queue.Enqueue(line.TrimEnd(TrimChars));
+            this.Queue.Enqueue(Tuple.Create(line.TrimEnd(TrimChars), style));
         }
 
         protected abstract void EnsureOpenConnection();

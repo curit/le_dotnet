@@ -1,11 +1,19 @@
 ﻿namespace log4net.Appender
 {
     using System;
+    using System.Collections.Generic;
     using Core;
     using LogentriesCore;
+    using Util;
+    using Attribute = LogentriesCore.Attribute;
 
     public class LogentriesAppender : AppenderSkeleton
     {
+        public LogentriesAppender()
+        {
+            LevelMapping = new LevelMapping();
+        }
+
         private IAsyncLogger _logentriesAsync;
 
         private IAsyncLogger LogentriesAsync
@@ -18,6 +26,34 @@
         }
 
         public bool UseHttpPut { get; set; }
+
+        private LevelMapping LevelMapping { get; set; }
+        
+        /// <summary>
+        /// Add a color mapping
+        /// </summary>
+        /// <param name="mapping">
+        /// The mapping
+        /// </param>
+        public void AddMapping(LevelColors mapping)
+        {
+            LevelMapping.Add(mapping);
+        }
+
+
+        /// <summary>
+        /// Initialize the options for this appender
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Initialize the level to color mappings set on this appender.
+        /// </para>
+        /// </remarks>
+        public override void ActivateOptions()
+        {
+            base.ActivateOptions();
+            LevelMapping.ActivateOptions();
+        }
 
         public string Token
         {
@@ -62,6 +98,13 @@
 
         protected override void Append(LoggingEvent loggingEvent)
         {
+            var levelColors = LevelMapping.Lookup(loggingEvent.Level) as LevelColors;
+            if (levelColors != null)
+            {
+                LogentriesAsync.AddLine(RenderLoggingEvent(loggingEvent), levelColors.ToStyle());
+                return;
+            }
+
             LogentriesAsync.AddLine(RenderLoggingEvent(loggingEvent));
         }
 
@@ -82,6 +125,62 @@
         {
             if (_logentriesAsync != null) 
                 _logentriesAsync.Dispose();
+        }
+
+        /// <summary>
+        /// A class to act as a mapping between the level that a logging call is made at and
+        /// the color it should be displayed as.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Defines the mapping between a level and the color it should be displayed in.
+        /// </para>
+        /// </remarks>
+        public class LevelColors : LevelMappingEntry
+        {
+            public LevelColors()
+            {
+                Attributes = new List<Attribute>();
+            }
+
+            /// <summary>
+            /// The mapped foreground color for the specified level
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// Required property.
+            /// The mapped foreground color for the specified level.
+            /// </para>
+            /// </remarks>
+            public ForegroundColor ForeColor { get; set; }
+            
+            /// <summary>
+            /// The mapped background color for the specified level
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// Required property.
+            /// The mapped background color for the specified level.
+            /// </para>
+            /// </remarks>
+            public BackgroundColor BackColor { get; set; }
+
+            public void AddAttribute(Attribute attr)
+            {
+                Attributes.Add(attr);
+            }
+
+            private List<Attribute> Attributes { get; set; }
+
+            internal Style ToStyle()
+            {
+                return new Style
+                {
+                    Attributes = Attributes,
+                    ForegroundColor = ForeColor,
+                    BackgroundColor = BackColor
+                };
+            }
         }
     }
 }
