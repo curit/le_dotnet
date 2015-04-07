@@ -2,7 +2,7 @@
 {
     using System;
 
-    public interface IAsyncLogger: IDisposable
+    public interface IAsyncLogger : IDisposable
     {
         bool UseSsl { get; set; }
         bool ImmediateFlush { get; set; }
@@ -11,6 +11,6 @@
         string AccountKey { get; set; }
         int SecurePort { get; set; }
         int Port { get; set; }
-        void AddLine(string line);
+        void AddLine(string line, Style style = null);
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace LogEntriesCore.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -8,6 +9,7 @@
     using System.Threading;
     using LogentriesCore;
     using Xunit;
+    using Attribute = LogentriesCore.Attribute;
 
     public class TestLogger : AsyncLoggerBase
     {
@@ -67,7 +69,7 @@
                 Thread.Sleep(100);
 
                 //Assert
-                Assert.Equal("2bfbea1e-10c3-4419-bdad-7e6435882e1dtest\n", Encoding.UTF8.GetString(ms.ToArray()));
+                Assert.Equal("2bfbea1e-10c3-4419-bdad-7e6435882e1d\x1b[30;47;0mtest\n", Encoding.UTF8.GetString(ms.ToArray()));
             }
         }
         
@@ -142,6 +144,25 @@
 
                 //Assert
                 Assert.Equal(3, Encoding.UTF8.GetString(ms.ToArray()).Count(c => c == '\u2028'));
+            }
+        }
+
+        [Fact]
+        public void ShouldGenerateCorrectAnsiEscapeCodesForStyle()
+        {
+            //Arrange
+            var expected = new Dictionary<Style, string>
+            {
+                { Style.Default, "\x1b[30;47;0m" },
+                { new Style { ForegroundColor = ForegroundColor.White, BackgroundColor = BackgroundColor.Red },  "\x1b[37;41;0m" },
+                { new Style { Attributes = new List<Attribute> {Attribute.Bold, Attribute.Underline, }},  "\x1b[30;47;1;4m" },
+                { new Style { BackgroundColor = BackgroundColor.Blue },  "\x1b[30;44;0m" }
+            };
+
+            //Act, Assert
+            foreach (var test in expected)
+            {
+                Assert.Equal(test.Key.ToString(), test.Value);    
             }
         }
     }
