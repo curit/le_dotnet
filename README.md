@@ -100,7 +100,7 @@ Here is an example of how to specify the credentials in the `<appSettings>` elem
 
 Here is an example of how to specify the credentials as Windows Azure role configuration settings:
 
-	<ServiceConfiguration serviceName="MyApp" osFamily="3" osVersion="*" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" schemaVersion="2013-03.2.0">
+	<ServiceConfiguration serviceName="MyApp" osFamily="3" osVersion="\*" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" schemaVersion="2013-03.2.0">
 		<Role name="MyRole">
 			<Instances count="2" />
 			<ConfigurationSettings>
@@ -157,12 +157,12 @@ Complete code example:
     public class HomeController : Controller
     {
         private static readonly ILog Logger = log4net.LogManager.GetLogger(typeof(HomeController).FullName);
-        
+
         public ActionResult Index()
         {
-            Logger.Debug("Home page viewed.");       
-            ViewBag.Message = "Welcome to ASP.NET MVC!";       
-            Logger.Warn("This is a warning message!");       
+            Logger.Debug("Home page viewed.");
+            ViewBag.Message = "Welcome to ASP.NET MVC!";
+            Logger.Warn("This is a warning message!");
             return View();
         }
     }
@@ -256,7 +256,7 @@ In web application it is often helpful to use NLog's built-in ability to log add
 
 Here is an example of how additional web-specific contextual log information can be added to the layout of the Logentries appender in a format that the Logentries parser will recognize and index:
 
-	<target name="logentries" type="Logentries" 
+	<target name="logentries" type="Logentries"
 		layout="${date:format=ddd MMM dd} ${time:format=HH:mm:ss} ${date:format=zzz yyyy} ${logger} ${LEVEL} ${message}${newline}SessionId='${aspnet-sessionid}'; Username='${aspnet-user-identity}'; ${newline}" />
 
 
@@ -294,12 +294,12 @@ Complete code example:
     public class HomeController : Controller
     {
         private static readonly Logger Logger = LogManager.getCurrentClassLogger();
-        
+
         public ActionResult Index()
         {
-            Logger.Debug("Home page viewed.");       
-            ViewBag.Message = "Welcome to ASP.NET MVC!";       
-            Logger.Warn("This is a warning message!");       
+            Logger.Debug("Home page viewed.");
+            ViewBag.Message = "Welcome to ASP.NET MVC!";
+            Logger.Warn("This is a warning message!");
             return View();
         }
     }
