@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
     <id>curit.logentries.nlog</id>
-    <version>0.1.9</version>
+    <version>0.2.1</version>
     <title>Curit Logentries NLog Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
     <owners>Curit, Logentries</owners>
@@ -17,7 +17,7 @@
       0.1.8 - Merge PR from SurajGupta preventing NLog logger from appending an exception by default.
     </releaseNotes>
     <dependencies>
-      <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="[2,3)"/>
+      <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0"/>
       <dependency id="NLog" />
     </dependencies>
   </metadata>
