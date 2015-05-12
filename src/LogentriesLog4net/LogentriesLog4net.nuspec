@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log log4net</tags>
     <releaseNotes>
+      0.2.2 - Remove rogue xunit.should package
       0.2.1 - Ansi colors for logging with log4net and fix references to azure config.
       0.1.9 - Get Token from environment variable when it's not found in the config.
       0.1.7 - Close on startup failed because it wasn't opened yet.
