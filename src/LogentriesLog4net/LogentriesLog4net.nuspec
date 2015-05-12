@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log log4net</tags>
     <releaseNotes>
+      0.2.1 - Ansi colors for logging with log4net and fix references to azure config.
       0.1.9 - Get Token from environment variable when it's not found in the config.
       0.1.7 - Close on startup failed because it wasn't opened yet.
       0.1.5 - Adds the ability to set ports from AppSettings. "Port" and "SecurePort".
@@ -26,8 +27,8 @@
       when we need to make a new package when something over at logentries changes.
     </releaseNotes>
     <dependencies>
-      <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="[2,3)"/>
-      <dependency id="log4net" />
+      <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0"/>
+      <dependency id="log4net" version="2.0.3" />
     </dependencies>
   </metadata>
 </package>
