@@ -16,7 +16,7 @@
     {
         Black = 30,
         Red = 31,
-        Geen = 32,
+        Green = 32,
         Yellow = 33,
         Blue = 34,
         Mangenta = 35,
@@ -28,7 +28,7 @@
     {
         Black = 40,
         Red = 41,
-        Geen = 42,
+        Green = 42,
         Yellow = 44,
         Blue = 44,
         Mangenta = 45,
