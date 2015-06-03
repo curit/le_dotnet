@@ -55,6 +55,7 @@
                 if (_leClient != null)
                 {
                     _leClient.Close();
+                    this.WorkerThread.Abort();
                 }
             }
         }

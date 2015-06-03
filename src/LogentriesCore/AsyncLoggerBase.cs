@@ -94,7 +94,7 @@
         private const string LineSeparator = "\u2028";
 
         // Thread that takes care of pushing to the Logentries server
-        private Thread WorkerThread { get; set; }
+        protected Thread WorkerThread { get; set; }
 
         // Internal queue of messages to be sent.
         private ConcurrentQueue<Tuple<string, Style>> Queue { get; set; }
