@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log nlog</tags>
     <releaseNotes>
+      0.2.4 - Abort worker thread on dispose
       0.2.3 - Green should be spelled correctly
       0.2.2 - Remove rogue xunit.should package
       0.2.1 - Fix references to azure config

@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log log4net</tags>
     <releaseNotes>
+      0.2.4 - Abort worker thread on dispose
       0.2.3 - Green should be spelled correctly
       0.2.2 - Remove rogue xunit.should package
       0.2.1 - Ansi colors for logging with log4net and fix references to azure config.
@@ -19,13 +20,13 @@
       0.1.7 - Close on startup failed because it wasn't opened yet.
       0.1.5 - Adds the ability to set ports from AppSettings. "Port" and "SecurePort".
       0.1.4 - Adds support for HttpPut logging back in. Nicer abstraction of Loggers.
-      Adds token logging to different port. Makes ports changable. Uses data.logentries.com 
-      because it accepts more posibilites. Changes certificate accordingly. Fixes some bugs 
+      Adds token logging to different port. Makes ports changable. Uses data.logentries.com
+      because it accepts more posibilites. Changes certificate accordingly. Fixes some bugs
       in securelogging. Changes "Location" configuration to "LocationName" because it's used
       in log4net for something else.
-      0.1.3 - Handles some more exception when trying to send to logentries. 
-      Because a failing collection caused w3wp to fail hard taking a lot of time. 
-      Doesn't catch the AuthenticationException on purpose because we want to know 
+      0.1.3 - Handles some more exception when trying to send to logentries.
+      Because a failing collection caused w3wp to fail hard taking a lot of time.
+      Doesn't catch the AuthenticationException on purpose because we want to know
       when we need to make a new package when something over at logentries changes.
     </releaseNotes>
     <dependencies>
