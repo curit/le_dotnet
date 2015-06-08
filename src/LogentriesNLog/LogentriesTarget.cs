@@ -12,12 +12,12 @@
         {
             get
             {
-                _logentriesAsync = _logentriesAsync ?? (UseHttpPut ? (IAsyncLogger)new AsyncHttpLogger() : new AsyncTcpLogger());
+                _logentriesAsync = _logentriesAsync ?? (UseHttp ? (IAsyncLogger)new AsyncHttpLogger() : new AsyncTcpLogger());
                 return _logentriesAsync;
             }
         }
 
-        public bool UseHttpPut { get; set; }
+        public bool UseHttp { get; set; }
 
         public string Token
         {
@@ -37,23 +37,12 @@
             set { LogentriesAsync.UseSsl = value; }
         }
 
-        public string AccountKey
-        {
-            get { return LogentriesAsync.AccountKey; }
-            set { LogentriesAsync.AccountKey = value; }
-        }
-
-        public string LocationName
-        {
-            get { return LogentriesAsync.LocationName; }
-            set { LogentriesAsync.LocationName = value; }
-        }
-
         public int Port
         {
             get { return LogentriesAsync.Port; }
             set { LogentriesAsync.Port = value; }
         }
+
         public int SecurePort
         {
             get { return LogentriesAsync.SecurePort; }

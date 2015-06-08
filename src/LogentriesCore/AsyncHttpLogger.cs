@@ -1,46 +1,33 @@
 ﻿namespace LogentriesCore
 {
     using System;
+    using System.Net;
     using System.Net.Security;
     using System.Net.Sockets;
     using System.Text;
 
     public class AsyncHttpLogger : AsyncLoggerBase
     {
+        private WebClient _leClient;
+
         public AsyncHttpLogger()
         {
-            Port = 80;
-            SecurePort = 443;
+            _leClient = new WebClient();
         }
 
-        private TcpClient _leClient;
-        
         protected override void EnsureOpenConnection()
         {
-            if (_leClient != null && _leClient.Connected) return;
+            
+        }
 
-            _leClient = new TcpClient(LeApiUrl, (UseSsl ? SecurePort : Port)) { NoDelay = true };
-
-            if (UseSsl)
-            {
-                Stream = new SslStream(_leClient.GetStream(), false,
-                    (sender, cert, chain, errors) =>
-                        cert.GetCertHashString() == LeApiServerCertificate.GetCertHashString());
-                //posible authentication exceptions aren't caught because we want to see them in the eventwvr
-                ((SslStream) Stream).AuthenticateAsClient(LeApiUrl);
-            }
-            else
-            {
-                Stream = _leClient.GetStream();
-            }
-
-            var header = String.Format("PUT /{0}/hosts/{1}/{2}?realtime=1 HTTP/1.1\r\n\r\n", AccountKey, LocationName, Token);
-            Stream.Write(Encoding.ASCII.GetBytes(header), 0, header.Length);
+        public override void AddLine(string line, Style style = null)
+        {
+            _leClient.UploadStringAsync(new Uri((UseSsl ? "https://" : "http://") + LeJsApiUrl + "/v1/logs/" + Token), "POST", style.ToString() + line.Replace(Environment.NewLine, LineSeparator));
         }
 
         protected override void CloseConnection()
         {
-            _leClient.Close();
+            _leClient.Dispose();
         }
 
         public override void Dispose()
@@ -58,7 +45,7 @@
             {
                 if (_leClient != null)
                 {
-                    _leClient.Close();
+                    _leClient.Dispose();
                     this.WorkerThread.Abort();
                 }
             }

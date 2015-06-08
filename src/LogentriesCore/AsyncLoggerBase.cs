@@ -72,6 +72,9 @@
         // Logentries API server address. 
         protected const string LeApiUrl = "data.logentries.com";
 
+        // Logentries API server address. 
+        protected const string LeJsApiUrl = "js.logentries.com";
+
         // New Logentries configuration names.
         private const string ConfigTokenName = "Logentries.Token";
 
@@ -91,7 +94,7 @@
         private static readonly char[] TrimChars = {'\r', '\n'};
 
         // Unicode line separator character 
-        private const string LineSeparator = "\u2028";
+        protected const string LineSeparator = "\u2028";
 
         // Thread that takes care of pushing to the Logentries server
         protected Thread WorkerThread { get; set; }
