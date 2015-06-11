@@ -1,10 +1,8 @@
 ﻿namespace LogentriesCore
 {
     using System;
+    using System.Configuration;
     using System.Net;
-    using System.Net.Security;
-    using System.Net.Sockets;
-    using System.Text;
 
     public class AsyncHttpLogger : AsyncLoggerBase
     {
@@ -22,7 +20,18 @@
 
         public override void AddLine(string line, Style style = null)
         {
-            _leClient.UploadStringAsync(new Uri((UseSsl ? "https://" : "http://") + LeJsApiUrl + "/v1/logs/" + Token), "POST", style.ToString() + line.Replace(Environment.NewLine, LineSeparator));
+            if (style == null)
+            {
+                style = Style.Default;
+            }
+
+            if (Token == null)
+            {
+                throw new ConfigurationErrorsException(
+                    "No LogEntries Credentials configured make sure your have \"Logentries.Token\" in your app.config or cloudconfig.");
+            }
+
+            _leClient.UploadStringAsync(new Uri((UseSsl ? "https://" : "http://") + LeJsApiUrl + "/v1/logs/" + Token), "POST", style + line.Trim().Replace(Environment.NewLine, LineSeparator));
         }
 
         protected override void CloseConnection()
@@ -46,7 +55,7 @@
                 if (_leClient != null)
                 {
                     _leClient.Dispose();
-                    this.WorkerThread.Abort();
+                    WorkerThread.Abort();
                 }
             }
         }

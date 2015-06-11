@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
     <id>curit.logentries.nlog</id>
-    <version>0.2.4</version>
+    <version>0.2.5</version>
     <title>Curit Logentries NLog Appender</title>
     <authors>Mark Lacomber, Albert-Jan Nijburg</authors>
     <owners>Curit, Logentries</owners>
@@ -12,6 +12,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>logging Logentries log nlog</tags>
     <releaseNotes>
+      0.2.5 - No longer use HTTP PUT but the js http endpoint and make the connection really async.
       0.2.4 - Abort worker thread on dispose
       0.2.3 - Green should be spelled correctly
       0.2.2 - Remove rogue xunit.should package
